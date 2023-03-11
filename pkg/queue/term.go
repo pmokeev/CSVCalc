@@ -11,15 +11,15 @@ var (
 
 type Cell struct {
 	XValue string
-	YValue string
+	YValue int
 }
 
 func NewCell(expression string, header map[string]int) (*Cell, error) {
-	for key := range header {
+	for key, ind := range header {
 		if strings.Contains(expression, key) && strings.Index(expression, key) == 0 {
 			return &Cell{
 				XValue: expression[len(key):],
-				YValue: expression[:len(key)],
+				YValue: ind,
 			}, nil
 		}
 	}
@@ -27,15 +27,13 @@ func NewCell(expression string, header map[string]int) (*Cell, error) {
 	return nil, errors.New("expression doesn't contains header key")
 }
 
-func (c *Cell) PickValue(records map[string][]string, header map[string]int) (string, error) {
-	values, ok := records[c.YValue]
+func (c *Cell) PickValue(records map[string][]string) (string, error) {
+	values, ok := records[c.XValue]
 	if !ok {
-		return "", errors.New("vertical key doesn't exist")
+		return "", errors.New("non-existent vertical key")
 	}
 
-	index := header[c.XValue]
-
-	return values[index], nil
+	return values[c.YValue], nil
 }
 
 type Term struct {

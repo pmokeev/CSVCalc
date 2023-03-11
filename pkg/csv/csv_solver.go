@@ -30,8 +30,18 @@ func NewCSVCalculator() *CSVCalculator {
 	}
 }
 
-func (cc *CSVCalculator) readCSV() error {
-	file, err := os.Open("data.csv")
+func (cc *CSVCalculator) Run(filepath string) {
+	header, err := cc.parseCSV(filepath)
+	if err != nil {
+		fmt.Printf("%v", err)
+		os.Exit(1)
+	}
+
+	cc.printTable(header)
+}
+
+func (cc *CSVCalculator) parseCSV(filepath string) (map[string]int, error) {
+	file, err := os.Open(filepath)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -41,15 +51,13 @@ func (cc *CSVCalculator) readCSV() error {
 	csvReader := csv.NewReader(file)
 	headerRecord, err := csvReader.Read()
 	if err != nil {
-		return fmt.Errorf("error while reading header line: %v", err.Error())
+		return nil, fmt.Errorf("error while reading header line: %v", err.Error())
 	}
 
 	header, err := cc.createHeaderMap(headerRecord)
 	if err != nil {
-		return err
+		return nil, err
 	}
-
-	records := make(map[string][]string, 0)
 
 	for {
 		record, err := csvReader.Read()
@@ -57,26 +65,26 @@ func (cc *CSVCalculator) readCSV() error {
 			break
 		}
 		if err != nil {
-			return err
+			return nil, err
 		}
 
-		if len(record) != len(header) {
-			return errors.New("size of line doesn't equal header line size")
+		if len(record)-1 != len(header) {
+			return nil, errors.New("size of line doesn't equal header line size")
 		}
 
 		values, err := cc.parseLine(record, header)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
-		records[record[0]] = values
+		cc.cells[record[0]] = values
 	}
 
-	if err := cc.parseQueue(records, header); err != nil {
-		return err
+	if err := cc.parseQueue(header); err != nil {
+		return nil, err
 	}
 
-	return nil
+	return header, nil
 }
 
 func (cc *CSVCalculator) createHeaderMap(record []string) (map[string]int, error) {
@@ -98,7 +106,7 @@ func (cc *CSVCalculator) parseLine(record []string, header map[string]int) ([]st
 
 	for ind := 1; ind < len(record); ind++ {
 		if strings.ContainsRune(record[ind], '=') {
-			term, err := queue.NewTerm(record[ind], record[0], ind, header)
+			term, err := queue.NewTerm(record[ind], record[0], ind-1, header)
 			if err != nil {
 				return nil, err
 			}
@@ -117,11 +125,11 @@ func (cc *CSVCalculator) parseLine(record []string, header map[string]int) ([]st
 	return values, nil
 }
 
-func (cc *CSVCalculator) parseQueue(records map[string][]string, header map[string]int) error {
+func (cc *CSVCalculator) parseQueue(header map[string]int) error {
 	for !cc.queue.Empty() {
 		term := cc.queue.Pop()
 
-		leftValue, err := term.LeftCell.PickValue(records, header)
+		leftValue, err := term.LeftCell.PickValue(cc.cells)
 		if err != nil {
 			return err
 		}
@@ -130,7 +138,7 @@ func (cc *CSVCalculator) parseQueue(records map[string][]string, header map[stri
 			continue
 		}
 
-		rightValue, err := term.RightCell.PickValue(records, header)
+		rightValue, err := term.RightCell.PickValue(cc.cells)
 		if err != nil {
 			return err
 		}
@@ -144,7 +152,7 @@ func (cc *CSVCalculator) parseQueue(records map[string][]string, header map[stri
 			return err
 		}
 
-		records[term.XKey][term.YKey] = calculatedValue
+		cc.cells[term.XKey][term.YKey] = calculatedValue
 	}
 
 	return nil
@@ -177,4 +185,22 @@ func (cc *CSVCalculator) calculateValue(firstValue, secondValue, operation strin
 	}
 
 	return "", errors.New("strange operation")
+}
+
+func (cc *CSVCalculator) printTable(header map[string]int) {
+	fmt.Printf(" ,")
+	for key := range header {
+		fmt.Printf("%v,", key)
+	}
+	fmt.Printf("\n")
+
+	for key, values := range cc.cells {
+		fmt.Printf("%v:", key)
+
+		for _, value := range values {
+			fmt.Printf("%v,", value)
+		}
+
+		fmt.Printf("\n")
+	}
 }

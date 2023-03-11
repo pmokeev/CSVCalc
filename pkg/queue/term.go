@@ -57,7 +57,7 @@ func NewTerm(expression, xKey string, yKey int, header map[string]int) (*Term, e
 	var operation int
 	for _, op := range operations {
 		if strings.Contains(expression, op) {
-			operation = strings.Index(expression, "+")
+			operation = strings.Index(expression, op)
 			term.Operation = op
 			break
 		}

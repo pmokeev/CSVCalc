@@ -15,32 +15,36 @@ import (
 )
 
 const (
-	epsilon = 1e10 - 6
+	epsilon = 1e-10
+	blank   = "_"
 )
 
 type CSVCalculator struct {
-	queue *queue.Queue
-	cells map[string][]string
+	queue            *queue.Queue
+	verticalValues   []string
+	horisontalValues []string
+	cells            map[string][]string
 }
 
 func NewCSVCalculator() *CSVCalculator {
 	return &CSVCalculator{
-		queue: queue.NewQueue(),
-		cells: make(map[string][]string, 0),
+		queue:            queue.NewQueue(),
+		verticalValues:   make([]string, 0),
+		horisontalValues: make([]string, 0),
+		cells:            make(map[string][]string, 0),
 	}
 }
 
 func (cc *CSVCalculator) Run(filepath string) {
-	header, err := cc.parseCSV(filepath)
-	if err != nil {
-		fmt.Printf("%v", err)
+	if err := cc.parseCSV(filepath); err != nil {
+		fmt.Printf("%v\n", err)
 		os.Exit(1)
 	}
 
-	cc.printTable(header)
+	cc.printTable()
 }
 
-func (cc *CSVCalculator) parseCSV(filepath string) (map[string]int, error) {
+func (cc *CSVCalculator) parseCSV(filepath string) error {
 	file, err := os.Open(filepath)
 	if err != nil {
 		log.Fatal(err)
@@ -51,12 +55,13 @@ func (cc *CSVCalculator) parseCSV(filepath string) (map[string]int, error) {
 	csvReader := csv.NewReader(file)
 	headerRecord, err := csvReader.Read()
 	if err != nil {
-		return nil, fmt.Errorf("error while reading header line: %v", err.Error())
+		return fmt.Errorf("error while reading header line: %v", err.Error())
 	}
+	cc.horisontalValues = headerRecord
 
 	header, err := cc.createHeaderMap(headerRecord)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	for {
@@ -65,26 +70,27 @@ func (cc *CSVCalculator) parseCSV(filepath string) (map[string]int, error) {
 			break
 		}
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		if len(record)-1 != len(header) {
-			return nil, errors.New("size of line doesn't equal header line size")
+			return errors.New("size of line doesn't equal header line size")
 		}
 
 		values, err := cc.parseLine(record, header)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		cc.cells[record[0]] = values
+		cc.verticalValues = append(cc.verticalValues, record[0])
 	}
 
 	if err := cc.parseQueue(header); err != nil {
-		return nil, err
+		return err
 	}
 
-	return header, nil
+	return nil
 }
 
 func (cc *CSVCalculator) createHeaderMap(record []string) (map[string]int, error) {
@@ -112,7 +118,7 @@ func (cc *CSVCalculator) parseLine(record []string, header map[string]int) ([]st
 			}
 
 			cc.queue.Push(term)
-			values = append(values, "_")
+			values = append(values, blank)
 		} else {
 			if _, err := strconv.Atoi(record[ind]); err != nil {
 				return nil, errors.New("unknown value in line")
@@ -133,7 +139,7 @@ func (cc *CSVCalculator) parseQueue(header map[string]int) error {
 		if err != nil {
 			return err
 		}
-		if leftValue == "_" {
+		if leftValue == blank {
 			cc.queue.Push(term)
 			continue
 		}
@@ -142,7 +148,7 @@ func (cc *CSVCalculator) parseQueue(header map[string]int) error {
 		if err != nil {
 			return err
 		}
-		if rightValue == "_" {
+		if rightValue == blank {
 			cc.queue.Push(term)
 			continue
 		}
@@ -187,18 +193,26 @@ func (cc *CSVCalculator) calculateValue(firstValue, secondValue, operation strin
 	return "", errors.New("strange operation")
 }
 
-func (cc *CSVCalculator) printTable(header map[string]int) {
-	fmt.Printf(" ,")
-	for key := range header {
-		fmt.Printf("%v,", key)
+func (cc *CSVCalculator) printTable() {
+	for ind, value := range cc.horisontalValues {
+		if ind != len(cc.horisontalValues)-1 {
+			fmt.Printf("%v,", value)
+		} else {
+			fmt.Printf("%v", value)
+		}
 	}
 	fmt.Printf("\n")
 
-	for key, values := range cc.cells {
-		fmt.Printf("%v:", key)
+	for _, key := range cc.verticalValues {
+		fmt.Printf("%v,", key)
+		values := cc.cells[key]
 
-		for _, value := range values {
-			fmt.Printf("%v,", value)
+		for ind, value := range values {
+			if ind != len(values)-1 {
+				fmt.Printf("%v,", value)
+			} else {
+				fmt.Printf("%v", value)
+			}
 		}
 
 		fmt.Printf("\n")

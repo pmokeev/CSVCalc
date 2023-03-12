@@ -131,6 +131,8 @@ func (cc *CSVCalculator) parseLine(record []string, header map[string]int) ([]st
 }
 
 func (cc *CSVCalculator) parseQueue() error {
+	waitingCells := make(map[string]bool, 0)
+
 	for !cc.queue.Empty() {
 		term := cc.queue.Pop()
 
@@ -140,6 +142,7 @@ func (cc *CSVCalculator) parseQueue() error {
 		}
 		if leftValue == blank {
 			cc.queue.Push(term)
+			waitingCells[term.LeftCell.String()] = true
 			continue
 		}
 
@@ -149,6 +152,7 @@ func (cc *CSVCalculator) parseQueue() error {
 		}
 		if rightValue == blank {
 			cc.queue.Push(term)
+			waitingCells[term.RightCell.String()] = true
 			continue
 		}
 
@@ -157,7 +161,17 @@ func (cc *CSVCalculator) parseQueue() error {
 			return err
 		}
 
+		currentCell := &queue.Cell{
+			XValue: term.XKey,
+			YValue: term.YKey,
+		}
+
+		if _, ok := waitingCells[currentCell.String()]; ok {
+			return errCyclicDependency
+		}
+
 		cc.cells[term.YKey][term.XKey] = calculatedValue
+		delete(waitingCells, currentCell.String())
 	}
 
 	return nil

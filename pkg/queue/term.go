@@ -1,6 +1,7 @@
 package queue
 
 import (
+	"fmt"
 	"strings"
 )
 
@@ -24,6 +25,10 @@ func NewCell(expression string, header map[string]int) (*Cell, error) {
 	}
 
 	return nil, &errNotFoundHeaderKey{value: expression}
+}
+
+func (c *Cell) String() string {
+	return fmt.Sprintf("%v:%v", c.YValue, c.XValue)
 }
 
 func (c *Cell) PickValue(records map[string][]string) (string, error) {
@@ -82,7 +87,7 @@ func NewTerm(expression, yKey string, xKey int, header map[string]int) (*Term, e
 }
 
 func checkExpressionCorrectness(expression string) bool {
-	if expression[0] != '=' {
+	if strings.Index(expression, "=") != 0 {
 		return false
 	}
 

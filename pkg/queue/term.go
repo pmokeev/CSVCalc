@@ -9,11 +9,13 @@ var (
 	operations = []string{"+", "-", "*", "/"}
 )
 
+// Cell represents cell in csv table.
 type Cell struct {
 	XValue int
 	YValue string
 }
 
+// NewCell returns new instance of Cell.
 func NewCell(expression string, header map[string]int) (*Cell, error) {
 	for key, ind := range header {
 		if strings.Contains(expression, key) && strings.Index(expression, key) == 0 {
@@ -27,10 +29,12 @@ func NewCell(expression string, header map[string]int) (*Cell, error) {
 	return nil, &errNotFoundHeaderKey{value: expression}
 }
 
+// String represents Stringer interface for Cell struct.
 func (c *Cell) String() string {
 	return fmt.Sprintf("%v:%v", c.YValue, c.XValue)
 }
 
+// PickValue picks value from records by cell values.
 func (c *Cell) PickValue(records map[string][]string) (string, error) {
 	values, ok := records[c.YValue]
 	if !ok {
@@ -40,6 +44,7 @@ func (c *Cell) PickValue(records map[string][]string) (string, error) {
 	return values[c.XValue], nil
 }
 
+// Term represents expression from csv table.
 type Term struct {
 	XKey      int
 	YKey      string
@@ -48,6 +53,7 @@ type Term struct {
 	Operation string
 }
 
+// NewTerm returns new instance of Term.
 func NewTerm(expression, yKey string, xKey int, header map[string]int) (*Term, error) {
 	if !checkExpressionCorrectness(expression) {
 		return nil, &errInvalidExpression{value: expression}
@@ -86,6 +92,7 @@ func NewTerm(expression, yKey string, xKey int, header map[string]int) (*Term, e
 	return term, nil
 }
 
+// checkExpressionCorrectness checks term expression on correctness.
 func checkExpressionCorrectness(expression string) bool {
 	if strings.Index(expression, "=") != 0 {
 		return false

@@ -2,6 +2,7 @@ package csv
 
 import "fmt"
 
+// table represents csv table values.
 type table struct {
 	header         map[string]int
 	horizontalKeys []string
@@ -9,6 +10,7 @@ type table struct {
 	cells          map[string][]string
 }
 
+// newTable returns new instance of table.
 func newTable() *table {
 	return &table{
 		verticalKeys:   make([]string, 0),
@@ -18,6 +20,7 @@ func newTable() *table {
 	}
 }
 
+// print prints table in terminal.
 func (t *table) print() {
 	for ind, value := range t.horizontalKeys {
 		if ind != len(t.horizontalKeys)-1 {
@@ -44,6 +47,7 @@ func (t *table) print() {
 	}
 }
 
+// setHeader sets header values.
 func (t *table) setHeader(value []string) error {
 	t.horizontalKeys = value
 
@@ -62,11 +66,13 @@ func (t *table) setHeader(value []string) error {
 	return nil
 }
 
+// addHorizontalLine adds horizontal line in table.
 func (t *table) addHorizontalLine(key string, values []string) {
 	t.cells[key] = values
 	t.verticalKeys = append(t.verticalKeys, key)
 }
 
+// setCellValue sets cell value.
 func (t *table) setCellValue(xKey int, yKey, value string) {
 	t.cells[yKey][xKey] = value
 }

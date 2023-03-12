@@ -17,11 +17,13 @@ const (
 	blank   = "_"
 )
 
+// CSVCalculator represents CSV calculator struct.
 type CSVCalculator struct {
 	queue *queue.Queue
 	table *table
 }
 
+// NewCSVCalculator returns new instance of CSVCalculator.
 func NewCSVCalculator() *CSVCalculator {
 	return &CSVCalculator{
 		queue: queue.NewQueue(),
@@ -29,6 +31,7 @@ func NewCSVCalculator() *CSVCalculator {
 	}
 }
 
+// Run runs CSVCalculator on some file.
 func (cc *CSVCalculator) Run(filepath string) {
 	if err := cc.parseCSV(filepath); err != nil {
 		log.Fatal(err)
@@ -41,6 +44,7 @@ func (cc *CSVCalculator) Run(filepath string) {
 	cc.table.print()
 }
 
+// parseCSV parses CSV file and creates table.
 func (cc *CSVCalculator) parseCSV(filepath string) error {
 	file, err := os.Open(filepath)
 	if err != nil {
@@ -84,6 +88,7 @@ func (cc *CSVCalculator) parseCSV(filepath string) error {
 	return nil
 }
 
+// parseLine parses line from CSV file.
 func (cc *CSVCalculator) parseLine(record []string) ([]string, error) {
 	values := make([]string, 0)
 
@@ -108,6 +113,7 @@ func (cc *CSVCalculator) parseLine(record []string) ([]string, error) {
 	return values, nil
 }
 
+// parseQueue parses queue.
 func (cc *CSVCalculator) parseQueue() error {
 	waitingCells := make(map[string]bool, 0)
 

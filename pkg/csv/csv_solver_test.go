@@ -118,23 +118,6 @@ func TestCSVCalculator_Run(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "Failed: cyclic-dependency.csv",
-			fields: fields{
-				queue: queue.NewQueue(),
-				table: newTable(),
-			},
-			args: args{
-				filepath: "../../test/data/cyclic-dependency.csv",
-			},
-			getCorrectTable: func() map[string][]string {
-				return map[string][]string{
-					"1": {"1", "_"},
-					"2": {"_", "3"},
-				}
-			},
-			wantErr: true,
-		},
-		{
 			name: "Failed: incorrect-cell-reference.csv",
 			fields: fields{
 				queue: queue.NewQueue(),

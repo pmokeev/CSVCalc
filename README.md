@@ -23,7 +23,7 @@ $ ./csvcalc ./test/data/example.csv
 - Zero external library dependency
 - Implemented using queue data structure
 
-# What next?
+# What's next?
 
 - The check for cyclic dependence of table cells is not implemented, for example:
     ```yaml

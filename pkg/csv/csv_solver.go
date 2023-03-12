@@ -2,7 +2,6 @@ package csv
 
 import (
 	"encoding/csv"
-	"fmt"
 	"io"
 	"log"
 	"math"
@@ -19,18 +18,14 @@ const (
 )
 
 type CSVCalculator struct {
-	queue            *queue.Queue
-	verticalValues   []string
-	horisontalValues []string
-	cells            map[string][]string
+	queue *queue.Queue
+	table *table
 }
 
 func NewCSVCalculator() *CSVCalculator {
 	return &CSVCalculator{
-		queue:            queue.NewQueue(),
-		verticalValues:   make([]string, 0),
-		horisontalValues: make([]string, 0),
-		cells:            make(map[string][]string, 0),
+		queue: queue.NewQueue(),
+		table: newTable(),
 	}
 }
 
@@ -39,7 +34,11 @@ func (cc *CSVCalculator) Run(filepath string) {
 		log.Fatal(err)
 	}
 
-	cc.printTable()
+	if err := cc.parseQueue(); err != nil {
+		log.Fatal(err)
+	}
+
+	cc.table.print()
 }
 
 func (cc *CSVCalculator) parseCSV(filepath string) error {
@@ -56,10 +55,8 @@ func (cc *CSVCalculator) parseCSV(filepath string) error {
 	if err != nil {
 		return err
 	}
-	cc.horisontalValues = headerRecord
 
-	header, err := cc.createHeaderMap(headerRecord)
-	if err != nil {
+	if err := cc.table.setHeader(headerRecord); err != nil {
 		return err
 	}
 
@@ -72,46 +69,27 @@ func (cc *CSVCalculator) parseCSV(filepath string) error {
 			return err
 		}
 
-		if len(record)-1 != len(header) {
+		if len(record)-1 != len(cc.table.header) {
 			return errUnequalLinesLengths
 		}
 
-		values, err := cc.parseLine(record, header)
+		values, err := cc.parseLine(record)
 		if err != nil {
 			return err
 		}
 
-		cc.cells[record[0]] = values
-		cc.verticalValues = append(cc.verticalValues, record[0])
-	}
-
-	if err := cc.parseQueue(); err != nil {
-		return err
+		cc.table.addHorizontalLine(record[0], values)
 	}
 
 	return nil
 }
 
-func (cc *CSVCalculator) createHeaderMap(record []string) (map[string]int, error) {
-	header := make(map[string]int, 0)
-
-	for ind := 1; ind < len(record); ind++ {
-		if record[ind] == "" {
-			return nil, errEmptyValueInHeader
-		}
-
-		header[record[ind]] = ind - 1
-	}
-
-	return header, nil
-}
-
-func (cc *CSVCalculator) parseLine(record []string, header map[string]int) ([]string, error) {
+func (cc *CSVCalculator) parseLine(record []string) ([]string, error) {
 	values := make([]string, 0)
 
 	for ind := 1; ind < len(record); ind++ {
 		if strings.ContainsRune(record[ind], '=') {
-			term, err := queue.NewTerm(record[ind], record[0], ind-1, header)
+			term, err := queue.NewTerm(record[ind], record[0], ind-1, cc.table.header)
 			if err != nil {
 				return nil, err
 			}
@@ -136,7 +114,7 @@ func (cc *CSVCalculator) parseQueue() error {
 	for !cc.queue.Empty() {
 		term := cc.queue.Pop()
 
-		leftValue, err := term.LeftCell.PickValue(cc.cells)
+		leftValue, err := term.LeftCell.PickValue(cc.table.cells)
 		if err != nil {
 			return err
 		}
@@ -146,7 +124,7 @@ func (cc *CSVCalculator) parseQueue() error {
 			continue
 		}
 
-		rightValue, err := term.RightCell.PickValue(cc.cells)
+		rightValue, err := term.RightCell.PickValue(cc.table.cells)
 		if err != nil {
 			return err
 		}
@@ -170,7 +148,7 @@ func (cc *CSVCalculator) parseQueue() error {
 			return errCyclicDependency
 		}
 
-		cc.cells[term.YKey][term.XKey] = calculatedValue
+		cc.table.setCellValue(term.XKey, term.YKey, calculatedValue)
 		delete(waitingCells, currentCell.String())
 	}
 
@@ -204,30 +182,4 @@ func (cc *CSVCalculator) calculateValue(firstValue, secondValue, operation strin
 	}
 
 	return "", &queue.ErrUnknownOperationInExpression{Value: operation}
-}
-
-func (cc *CSVCalculator) printTable() {
-	for ind, value := range cc.horisontalValues {
-		if ind != len(cc.horisontalValues)-1 {
-			fmt.Printf("%v,", value)
-		} else {
-			fmt.Printf("%v", value)
-		}
-	}
-	fmt.Printf("\n")
-
-	for _, key := range cc.verticalValues {
-		fmt.Printf("%v,", key)
-		values := cc.cells[key]
-
-		for ind, value := range values {
-			if ind != len(values)-1 {
-				fmt.Printf("%v,", value)
-			} else {
-				fmt.Printf("%v", value)
-			}
-		}
-
-		fmt.Printf("\n")
-	}
 }

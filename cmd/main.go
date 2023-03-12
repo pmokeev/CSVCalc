@@ -1,18 +1,14 @@
 package main
 
 import (
-	"github.com/alecthomas/kingpin"
+	"os"
+
 	"github.com/pmokeev/CSVCalc/pkg/csv"
 )
 
-var (
-	filepath = kingpin.Arg("filepath", "Path to CSV file with table.").Required().String()
-)
-
 func main() {
-	kingpin.Version("0.0.1")
-	kingpin.Parse()
+	filepath := os.Args[len(os.Args)-1]
 
 	csvCalculator := csv.NewCSVCalculator()
-	csvCalculator.Run(*filepath)
+	csvCalculator.Run(filepath)
 }

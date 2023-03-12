@@ -105,7 +105,7 @@ func (cc *CSVCalculator) parseLine(record []string) ([]string, error) {
 			values = append(values, blank)
 		} else {
 			if _, err := strconv.Atoi(record[ind]); err != nil {
-				return nil, &errUnknownValueInLine{value: record[ind]}
+				return nil, &unknownValueInLineError{value: record[ind]}
 			}
 
 			values = append(values, record[ind])
@@ -175,5 +175,5 @@ func (cc *CSVCalculator) calculateValue(firstValue, secondValue, operation strin
 		return strconv.Itoa(firstValueConverted / secondValueConverted), nil
 	}
 
-	return "", &queue.ErrUnknownOperationInExpression{Value: operation}
+	return "", &queue.UnknownOperationInExpressionError{Value: operation}
 }

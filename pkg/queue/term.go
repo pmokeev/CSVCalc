@@ -26,7 +26,7 @@ func NewCell(expression string, header map[string]int) (*Cell, error) {
 		}
 	}
 
-	return nil, &errNotFoundHeaderKey{value: expression}
+	return nil, &notFoundHeaderKeyError{value: expression}
 }
 
 // String represents Stringer interface for Cell struct.
@@ -38,7 +38,7 @@ func (c *Cell) String() string {
 func (c *Cell) PickValue(records map[string][]string) (string, error) {
 	values, ok := records[c.YValue]
 	if !ok {
-		return "", &errNotFoundVerticalKey{value: c.YValue}
+		return "", &notFoundVerticalKeyError{value: c.YValue}
 	}
 
 	return values[c.XValue], nil
@@ -56,7 +56,7 @@ type Term struct {
 // NewTerm returns new instance of Term.
 func NewTerm(expression, yKey string, xKey int, header map[string]int) (*Term, error) {
 	if !checkExpressionCorrectness(expression) {
-		return nil, &errInvalidExpression{value: expression}
+		return nil, &invalidExpressionError{value: expression}
 	}
 
 	term := &Term{
@@ -74,7 +74,7 @@ func NewTerm(expression, yKey string, xKey int, header map[string]int) (*Term, e
 	}
 
 	if operation == -1 {
-		return nil, &ErrUnknownOperationInExpression{Value: expression}
+		return nil, &UnknownOperationInExpressionError{Value: expression}
 	}
 
 	leftCell, err := NewCell(expression[1:operation], header)

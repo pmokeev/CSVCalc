@@ -2,42 +2,42 @@ package queue
 
 import "fmt"
 
-// errNotFoundHeaderKey represents NotFoundHeaderKey error.
-type errNotFoundHeaderKey struct {
+// notFoundHeaderKeyError represents NotFoundHeaderKey error.
+type notFoundHeaderKeyError struct {
 	value string
 }
 
 // Error represents Error interface.
-func (e *errNotFoundHeaderKey) Error() string {
+func (e *notFoundHeaderKeyError) Error() string {
 	return fmt.Sprintf("expression doesn't contains header key: %v", e.value)
 }
 
-// errNotFoundVerticalKey represents NotFoundVerticalKey error.
-type errNotFoundVerticalKey struct {
+// notFoundVerticalKeyError represents NotFoundVerticalKey error.
+type notFoundVerticalKeyError struct {
 	value string
 }
 
 // Error represents Error interface.
-func (e *errNotFoundVerticalKey) Error() string {
+func (e *notFoundVerticalKeyError) Error() string {
 	return fmt.Sprintf("not found vertical key: %v", e.value)
 }
 
-// errInvalidExpression represents InvalidExpression error.
-type errInvalidExpression struct {
+// invalidExpressionError represents InvalidExpression error.
+type invalidExpressionError struct {
 	value string
 }
 
 // Error represents Error interface.
-func (e *errInvalidExpression) Error() string {
+func (e *invalidExpressionError) Error() string {
 	return fmt.Sprintf("invalid expression: %v", e.value)
 }
 
-// ErrUnknownOperationInExpression represents UnknownOperation error.
-type ErrUnknownOperationInExpression struct {
+// UnknownOperationInExpressionError represents UnknownOperation error.
+type UnknownOperationInExpressionError struct {
 	Value string
 }
 
 // Error represents Error interface.
-func (e *ErrUnknownOperationInExpression) Error() string {
+func (e *UnknownOperationInExpressionError) Error() string {
 	return fmt.Sprintf("unknown operation in expression: %s", e.Value)
 }

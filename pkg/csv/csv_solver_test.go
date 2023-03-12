@@ -1,6 +1,7 @@
 package csv
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 
@@ -133,6 +134,23 @@ func TestCSVCalculator_Run(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "Failed: incorrect-cell-reference.csv",
+			fields: fields{
+				queue: queue.NewQueue(),
+				table: newTable(),
+			},
+			args: args{
+				filepath: "../../test/data/incorrect-cell-reference.csv",
+			},
+			getCorrectTable: func() map[string][]string {
+				return map[string][]string{
+					"1": {"1", "0", "1"},
+					"2": {"2", "_", "0"},
+				}
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -141,6 +159,8 @@ func TestCSVCalculator_Run(t *testing.T) {
 				table: tt.fields.table,
 			}
 			err := cc.Run(tt.args.filepath)
+
+			fmt.Printf("%v", cc.table.cells)
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("CSVCalculator.Run() error = %v, wantErr %v", err, tt.wantErr)

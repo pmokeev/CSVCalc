@@ -62,6 +62,10 @@ func (cc *CSVCalculator) parseCSV(filepath string) error {
 		return err
 	}
 
+	if len(headerRecord) == 0 {
+		return errEmptyHeader
+	}
+
 	if err := cc.table.setHeader(headerRecord); err != nil {
 		return err
 	}

@@ -1,0 +1,29 @@
+name: BaseCI
+
+on: [push]
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        go-version: [1.19.x]
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: Setup Golang 1.19.x
+      uses: actions/setup-go@v3
+      with:
+        go-version: ${{ matrix.go-version }}
+
+    - name: Clone repository
+      uses: actions/checkout@v3
+
+    - name: Build app
+      run: go build -o traceroute cmd/main.go
+
+    - name: Run lints
+      uses: reviewdog/action-golangci-lint@v2
+
+    - name: Run lint
+      run: go test ./...

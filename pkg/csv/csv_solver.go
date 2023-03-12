@@ -2,7 +2,6 @@ package csv
 
 import (
 	"encoding/csv"
-	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -37,8 +36,7 @@ func NewCSVCalculator() *CSVCalculator {
 
 func (cc *CSVCalculator) Run(filepath string) {
 	if err := cc.parseCSV(filepath); err != nil {
-		fmt.Printf("%v\n", err)
-		os.Exit(1)
+		log.Fatal(err)
 	}
 
 	cc.printTable()
@@ -53,9 +51,10 @@ func (cc *CSVCalculator) parseCSV(filepath string) error {
 	defer file.Close()
 
 	csvReader := csv.NewReader(file)
+
 	headerRecord, err := csvReader.Read()
 	if err != nil {
-		return fmt.Errorf("error while reading header line: %v", err.Error())
+		return err
 	}
 	cc.horisontalValues = headerRecord
 
@@ -74,7 +73,7 @@ func (cc *CSVCalculator) parseCSV(filepath string) error {
 		}
 
 		if len(record)-1 != len(header) {
-			return errors.New("size of line doesn't equal header line size")
+			return errUnequalLinesLengths
 		}
 
 		values, err := cc.parseLine(record, header)
@@ -86,7 +85,7 @@ func (cc *CSVCalculator) parseCSV(filepath string) error {
 		cc.verticalValues = append(cc.verticalValues, record[0])
 	}
 
-	if err := cc.parseQueue(header); err != nil {
+	if err := cc.parseQueue(); err != nil {
 		return err
 	}
 
@@ -98,7 +97,7 @@ func (cc *CSVCalculator) createHeaderMap(record []string) (map[string]int, error
 
 	for ind := 1; ind < len(record); ind++ {
 		if record[ind] == "" {
-			return nil, errors.New("empty header value")
+			return nil, errEmptyValueInHeader
 		}
 
 		header[record[ind]] = ind - 1
@@ -121,7 +120,7 @@ func (cc *CSVCalculator) parseLine(record []string, header map[string]int) ([]st
 			values = append(values, blank)
 		} else {
 			if _, err := strconv.Atoi(record[ind]); err != nil {
-				return nil, errors.New("unknown value in line")
+				return nil, &errUnknownValueInLine{value: record[ind]}
 			}
 
 			values = append(values, record[ind])
@@ -131,7 +130,7 @@ func (cc *CSVCalculator) parseLine(record []string, header map[string]int) ([]st
 	return values, nil
 }
 
-func (cc *CSVCalculator) parseQueue(header map[string]int) error {
+func (cc *CSVCalculator) parseQueue() error {
 	for !cc.queue.Empty() {
 		term := cc.queue.Pop()
 
@@ -158,7 +157,7 @@ func (cc *CSVCalculator) parseQueue(header map[string]int) error {
 			return err
 		}
 
-		cc.cells[term.XKey][term.YKey] = calculatedValue
+		cc.cells[term.YKey][term.XKey] = calculatedValue
 	}
 
 	return nil
@@ -184,13 +183,13 @@ func (cc *CSVCalculator) calculateValue(firstValue, secondValue, operation strin
 		return strconv.Itoa(firstValueConverted * secondValueConverted), nil
 	case "/":
 		if math.Abs(float64(secondValueConverted)) < epsilon {
-			return "", errors.New("division by zero")
+			return "", errDivisionByZero
 		}
 
 		return strconv.Itoa(firstValueConverted / secondValueConverted), nil
 	}
 
-	return "", errors.New("strange operation")
+	return "", &queue.ErrUnknownOperationInExpression{Value: operation}
 }
 
 func (cc *CSVCalculator) printTable() {

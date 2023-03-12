@@ -12,33 +12,33 @@ func TestQueue(t *testing.T) {
 			name: "Success: simple test",
 			doFunc: func(q *Queue) {
 				q.Push(&Term{
-					XKey: "1",
+					XKey: 1,
 				})
 			},
 			checkFunc: func(q *Queue) bool {
 				popped := q.Pop()
 
-				return popped.XKey == "1"
+				return popped.XKey == 1
 			},
 		},
 		{
 			name: "Success: more values in a queue",
 			doFunc: func(q *Queue) {
 				q.Push(&Term{
-					XKey: "1",
+					XKey: 1,
 				})
 				q.Push(&Term{
-					XKey: "2",
+					XKey: 2,
 				})
 				q.Push(&Term{
-					XKey: "3",
+					XKey: 3,
 				})
 				q.Push(&Term{
-					XKey: "4",
+					XKey: 4,
 				})
 			},
 			checkFunc: func(q *Queue) bool {
-				for _, value := range []string{"1", "2", "3", "4"} {
+				for _, value := range []int{1, 2, 3, 4} {
 					popped := q.Pop()
 
 					if popped.XKey != value {
@@ -53,22 +53,22 @@ func TestQueue(t *testing.T) {
 			name: "Success: more complex test",
 			doFunc: func(q *Queue) {
 				q.Push(&Term{
-					XKey: "1",
+					XKey: 1,
 				})
 				q.Push(&Term{
-					XKey: "2",
+					XKey: 2,
 				})
 				q.Push(&Term{
-					XKey: "3",
+					XKey: 3,
 				})
 				q.Pop()
 				q.Pop()
 				q.Push(&Term{
-					XKey: "4",
+					XKey: 4,
 				})
 			},
 			checkFunc: func(q *Queue) bool {
-				for _, value := range []string{"3", "4"} {
+				for _, value := range []int{3, 4} {
 					popped := q.Pop()
 
 					if popped.XKey != value {
@@ -83,16 +83,16 @@ func TestQueue(t *testing.T) {
 			name: "Success: empty queue after pushes",
 			doFunc: func(q *Queue) {
 				q.Push(&Term{
-					XKey: "1",
+					XKey: 1,
 				})
 				q.Push(&Term{
-					XKey: "2",
+					XKey: 2,
 				})
 				q.Push(&Term{
-					XKey: "3",
+					XKey: 3,
 				})
 				q.Push(&Term{
-					XKey: "4",
+					XKey: 4,
 				})
 				q.Pop()
 				q.Pop()

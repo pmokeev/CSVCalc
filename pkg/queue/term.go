@@ -1,7 +1,6 @@
 package queue
 
 import (
-	"errors"
 	"strings"
 )
 
@@ -10,43 +9,43 @@ var (
 )
 
 type Cell struct {
-	XValue string
-	YValue int
+	XValue int
+	YValue string
 }
 
 func NewCell(expression string, header map[string]int) (*Cell, error) {
 	for key, ind := range header {
 		if strings.Contains(expression, key) && strings.Index(expression, key) == 0 {
 			return &Cell{
-				XValue: expression[len(key):],
-				YValue: ind,
+				YValue: expression[len(key):],
+				XValue: ind,
 			}, nil
 		}
 	}
 
-	return nil, errors.New("expression doesn't contains header key")
+	return nil, &errNotFoundHeaderKey{value: expression}
 }
 
 func (c *Cell) PickValue(records map[string][]string) (string, error) {
-	values, ok := records[c.XValue]
+	values, ok := records[c.YValue]
 	if !ok {
-		return "", errors.New("non-existent vertical key")
+		return "", &errNotFoundVerticalKey{value: c.YValue}
 	}
 
-	return values[c.YValue], nil
+	return values[c.XValue], nil
 }
 
 type Term struct {
-	XKey      string
-	YKey      int
+	XKey      int
+	YKey      string
 	LeftCell  *Cell
 	RightCell *Cell
 	Operation string
 }
 
-func NewTerm(expression, xKey string, yKey int, header map[string]int) (*Term, error) {
+func NewTerm(expression, yKey string, xKey int, header map[string]int) (*Term, error) {
 	if !checkExpressionCorrectness(expression) {
-		return nil, errors.New("expression isn't correct")
+		return nil, &errInvalidExpression{value: expression}
 	}
 
 	term := &Term{
@@ -61,6 +60,10 @@ func NewTerm(expression, xKey string, yKey int, header map[string]int) (*Term, e
 			term.Operation = op
 			break
 		}
+	}
+
+	if operation == -1 {
+		return nil, &ErrUnknownOperationInExpression{Value: expression}
 	}
 
 	leftCell, err := NewCell(expression[1:operation], header)

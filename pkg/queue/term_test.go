@@ -25,8 +25,8 @@ func TestNewCell(t *testing.T) {
 				},
 			},
 			want: &Cell{
-				XValue: "30",
-				YValue: 1,
+				XValue: 1,
+				YValue: "30",
 			},
 			wantErr: false,
 		},
@@ -58,8 +58,8 @@ func TestNewCell(t *testing.T) {
 
 func TestCell_PickValue(t *testing.T) {
 	type fields struct {
-		XValue string
-		YValue int
+		XValue int
+		YValue string
 	}
 	type args struct {
 		records map[string][]string
@@ -74,8 +74,8 @@ func TestCell_PickValue(t *testing.T) {
 		{
 			name: "Success",
 			fields: fields{
-				XValue: "30",
-				YValue: 0,
+				XValue: 0,
+				YValue: "30",
 			},
 			args: args{
 				records: map[string][]string{
@@ -88,8 +88,8 @@ func TestCell_PickValue(t *testing.T) {
 		{
 			name: "Failed: non-existent vertical key",
 			fields: fields{
-				XValue: "30",
-				YValue: 1,
+				XValue: 0,
+				YValue: "30",
 			},
 			args: args{
 				records: make(map[string][]string),
@@ -141,15 +141,15 @@ func TestNewTerm(t *testing.T) {
 				},
 			},
 			want: &Term{
-				XKey: "1",
-				YKey: 1,
+				XKey: 1,
+				YKey: "1",
 				LeftCell: &Cell{
-					XValue: "1",
-					YValue: 1,
+					XValue: 1,
+					YValue: "1",
 				},
 				RightCell: &Cell{
-					XValue: "2",
-					YValue: 2,
+					XValue: 2,
+					YValue: "2",
 				},
 				Operation: "+",
 			},

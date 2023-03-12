@@ -1,0 +1,69 @@
+linters:
+  disable-all: true
+  enable:
+    - bodyclose # checks whether HTTP response body is closed successfully
+    - gomodguard # allow and block lists linter for direct Go module dependencies
+    - dogsled # checks assignments with too many blank identifiers (e.g. x, _, _, _, := f())
+    - dupl # tool for code clone detection
+    - errcheck # checking for unchecked errors, these unchecked errors can be critical bugs in some cases
+    - exportloopref # checks for pointers to enclosing loop variables
+    - gochecknoinits # checks that no init functions are present in Go code
+    - goconst # finds repeated strings that could be replaced by a constant
+    - gocritic # provides diagnostics that check for bugs, performance and style issues
+    - gocyclo # computes and checks the cyclomatic complexity of functions
+    - goimports # in addition to fixing imports, goimports also formats your code in the same style as gofmt
+    - gomnd # detects magic numbers
+    - goprintffuncname # checks that printf-like functions are named with f at the end
+    - gosec # inspects source code for security problems
+    - gosimple # specializes in simplifying a code
+    - govet # reports suspicious constructs, such as Printf calls whose arguments do not align with the format string
+    - ineffassign # detects when assignments to existing variables are not used
+    - lll # reports long lines
+    - nakedret # finds naked returns in functions greater than a specified function length
+    - noctx # finds sending http request without context.Context
+    - nolintlint # reports ill-formed or insufficient nolint directives
+    - staticcheck # is a go vet on steroids, applying a ton of static analysis checks
+    - stylecheck # is a replacement for golint
+    - typecheck # like the front-end of a Go compiler, parses and type-checks Go code
+    - unconvert # removes unnecessary type conversions
+    - unparam # reports unused function parameters
+    - unused # checks for unused constants, variables, functions and types
+    - whitespace # detects leading and trailing whitespace
+    - nonamedreturns # reports all named returns
+    - makezero # finds slice declarations with non-zero initial length
+    - errname # checks that sentinel errors are prefixed with the Err and error types are suffixed with the Error
+
+linters-settings:
+  errcheck:
+    check-type-assertions: true
+  
+  gocritic:
+    settings:
+      captLocal:
+        paramsOnly: false
+      underef:
+        skipRecvDeref: false
+
+  nakedret:
+    max-func-lines: 0
+
+issues:
+  max-same-issues: 3
+
+  exclude-rules:
+    - path: "_test\\.go"
+      linters:
+        - bodyclose
+        - dupl
+        - funlen
+        - goconst
+        - gosec
+        - noctx
+        - wrapcheck
+
+run:
+  concurrency: 4
+  timeout: 5m
+  issues-exit-code: 1
+  tests: false
+  go: '1.20'

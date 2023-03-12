@@ -112,6 +112,7 @@ func TestQueue(t *testing.T) {
 
 			if !tt.checkFunc(q) {
 				t.Error("Push() = invalid value in queue")
+				return
 			}
 		})
 	}

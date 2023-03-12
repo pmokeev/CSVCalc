@@ -32,16 +32,18 @@ func NewCSVCalculator() *CSVCalculator {
 }
 
 // Run runs CSVCalculator on some file.
-func (cc *CSVCalculator) Run(filepath string) {
+func (cc *CSVCalculator) Run(filepath string) error {
 	if err := cc.parseCSV(filepath); err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	if err := cc.parseQueue(); err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	cc.table.print()
+
+	return nil
 }
 
 // parseCSV parses CSV file and creates table.
@@ -115,8 +117,6 @@ func (cc *CSVCalculator) parseLine(record []string) ([]string, error) {
 
 // parseQueue parses queue.
 func (cc *CSVCalculator) parseQueue() error {
-	waitingCells := make(map[string]bool, 0)
-
 	for !cc.queue.Empty() {
 		term := cc.queue.Pop()
 
@@ -126,7 +126,6 @@ func (cc *CSVCalculator) parseQueue() error {
 		}
 		if leftValue == blank {
 			cc.queue.Push(term)
-			waitingCells[term.LeftCell.String()] = true
 			continue
 		}
 
@@ -136,7 +135,6 @@ func (cc *CSVCalculator) parseQueue() error {
 		}
 		if rightValue == blank {
 			cc.queue.Push(term)
-			waitingCells[term.RightCell.String()] = true
 			continue
 		}
 
@@ -145,17 +143,7 @@ func (cc *CSVCalculator) parseQueue() error {
 			return err
 		}
 
-		currentCell := &queue.Cell{
-			XValue: term.XKey,
-			YValue: term.YKey,
-		}
-
-		if _, ok := waitingCells[currentCell.String()]; ok {
-			return errCyclicDependency
-		}
-
 		cc.table.setCellValue(term.XKey, term.YKey, calculatedValue)
-		delete(waitingCells, currentCell.String())
 	}
 
 	return nil
